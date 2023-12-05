@@ -9,3 +9,13 @@ constexpr double dx{0.01}; /*x方向セルサイズ*/
 
 constexpr int Nx{int(Rx/dx)}; /*総セル数*/
 constexpr double dt{ 0.99 * dx / C0 };
+
+
+/* Prototype */
+void initialize(double *Ez, double *Hy);
+
+void update_e(double *Ez, double *Hy);
+
+void update_h(double *Hy, double *Ez);
+
+void output_ez(double *Ez, const int n);
