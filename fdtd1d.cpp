@@ -8,7 +8,9 @@ int main(){
 
     for(int n = 1; n < 200; n++){
       update_e(Ez, Hy);
+      update_e_pml(Ez, Hy);
       update_h(Hy, Ez);
+      update_h_pml(Hy, Ez);
 
       output_ez(Ez, n);
     }

@@ -1,4 +1,4 @@
-OBJS = fdtd1d.o initialize.o output_ez.o update_e.o update_h.o
+OBJS = fdtd1d.o initialize.o output_ez.o update_e.o update_h.o update_e_pml.o update_h_pml.o
 
 HEADERS = fdtd.h
 
