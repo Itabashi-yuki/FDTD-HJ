@@ -1,6 +1,11 @@
 data/
+check/
+test/
 *.dat
 *.png
 *.gif
 *.o
+*.sh
+test.cpp
 main
+!Ne.dat
