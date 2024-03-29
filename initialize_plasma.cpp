@@ -6,7 +6,9 @@
 constexpr double M2KM{1e-3}; /* z[m] -> [km] */
 
 double nu(const double z){ /* 衝突周波数の計算 */
-    return 4.303e11 * exp (-0.1622 * z * M2KM); 
+    // return 4.303e11 * exp (-0.1622 * z * M2KM); 
+    return 1.0e7; 
+    // return 0.0;
 }
 
 double omg_p(const double Ne){ /* Ne [m^-3] からプラズマ周波数を計算 */
@@ -25,21 +27,25 @@ void initialize_plasma(Eigen::Matrix3d *S, Eigen::Matrix3d *B, double Ne_alt, do
 
     /* 入力ファイルの高度と解析領域における位置のズレの修正
        現実的な解析領域にすれば、必要ない */
-    int Ne_alt_int = int(90 +  2 * (Ne_alt - 60));
+    constexpr double Ne_input_file_alt_lower = { 60 }; /* 電子密度入力ファイル(Ne.dat)において電子密度が入っている最低高度の値 */
+    int Ne_alt_int = int(Nx_iono_lower + 2 * (Ne_alt - Ne_input_file_alt_lower));
 
     /* 入力した高度Ne_alt[m]での一様な電子密度分布の設定 */
-    double Ne_const = Ne[Ne_alt_int];
-    std::cout << "Ne = " << Ne_const << std::endl;
+    // double Ne_const = Ne[Ne_alt_int];
+    // double Ne_const = 1.0e7;
+    double Ne_const = 1.0e7;
+    // double Ne_const = 0.0;
 
-    // double Ne_const = 3.91935e+07; //高度60kmでの電子密度
-    // double Ne_const = 6.16177e+07; //高度62.5kmでの電子密度
-    // double Ne_const = 9.47739e+07; //高度65kmでの電子密度
-    // double Ne_const = 1.72003e+08; //高度67.5kmでの電子密度
-    // double Ne_const = 2.37686e+08; //高度70kmでの電子密度
-    // double Ne_const = 3.74176e+08; //高度75kmでの電子密度
+    std::cout << "Ne = " << Ne_const << std::endl;
     
     /* 入力した高度nu_alt[m]での一様な衝突周波数の設定 */
+    // double nu_const = 0.0; 
     double nu_const = nu(nu_alt * 1.0e3); 
+
+    std::ofstream ofs_pal("./data/"+ global_dirName +"/pal.dat");
+    ofs_pal << "Ne = " << Ne_const << std::endl;
+    ofs_pal << "nu = " << nu_const << std::endl;
+    ofs_pal.close();
 
     for(int i = Nx_iono_lower; i <= Nx_iono_upper; i++){
         /* 高度z[m] 入力した電子密度分布ファイルの高度と解析領域におけるプラズマ領域のズレから20000[m]を足している。修正必須 */
@@ -47,12 +53,14 @@ void initialize_plasma(Eigen::Matrix3d *S, Eigen::Matrix3d *B, double Ne_alt, do
 
         /* 高度によった分布を用いているものをコメントアウト */
         // double Omg_0 = 1 / dt + nu(z) / 2.;
-        double Omg_0 = 1 / dt + nu_const / 2.;
+        // double Omg_0 = 1 / dt + nu_const / 2.;
+        double Omg_0 = (2.0 + dt * nu_const) / 2.0 / dt;
         
         // double Omg_0_prime = 1 / dt - nu(z) / 2.;
-        double Omg_0_prime = 1 / dt - nu_const / 2.;
+        // double Omg_0_prime = 1 / dt - nu_const / 2.;
+        double Omg_0_prime = (2.0 - dt * nu_const) / 2.0 / dt;
         
-        const double Omg_c{CHARGE_e * 50000e-9 / MASS_e}; /* F0 = 50000[nT]にしている */ 
+        const double Omg_c{CHARGE_e * B0 / MASS_e};
         
         // double Omg_p = omg_p(Ne[i]);
         double Omg_p = omg_p(Ne_const);
@@ -63,8 +71,8 @@ void initialize_plasma(Eigen::Matrix3d *S, Eigen::Matrix3d *B, double Ne_alt, do
         Eigen::Matrix3d A, R1, R2;
         Eigen::Vector3d b;
         
-        const double THETA = M_PI / 4;
-        const double PHI = M_PI / 4;
+        const double THETA = M_PI / 4.0;
+        const double PHI = M_PI / 4.0;
 
         b << std::sin(THETA) * std::cos(PHI) , std::sin(THETA) * std::sin(PHI), std::cos(THETA);
     
